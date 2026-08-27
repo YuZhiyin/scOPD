@@ -1,0 +1,25 @@
+defaults:
+  - sibling_srpo
+  - _self_
+
+# Prefer a qualified on-policy sibling.  If none exists, offline CellPuzzles
+# o1 reasoning may serve as privileged context for answer-wrong rollouts.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      include_environment_feedback: true
+      environment_feedback_only_without_solution: true
+      require_successful_solution_for_sdpo: true
+      allow_environment_feedback_fallback_for_sdpo: true
+      reprompt_template: |-
+        {prompt}{solution}{feedback}
+
+        Correctly solve the original cell-annotation problem. Use the supplied
+        privileged reasoning while following the required reasoning and answer
+        format.
+      feedback_template: |-
+
+        Correct expert reasoning distilled from o1 for this exact problem:
+
+        {feedback_raw}
+

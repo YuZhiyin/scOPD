@@ -1,0 +1,16 @@
+defaults:
+  - nonthinking_reasoning_joint_hierarchical_sdpo
+  - _self_
+
+# Full method: all rollouts retain dense GRPO, while reasoning-token SDPO uses
+# a teacher-source-aware coefficient. GT remains the answer anchor for every
+# teacher; process privilege follows sibling -> O1 -> GT-only.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      source_aware_joint_weighting: true
+      sibling_joint_loss_weight: 0.5
+      o1_joint_loss_weight: 0.3
+      gt_only_joint_loss_weight: 0.1
+      reasoning_only_distillation: true
+      reasoning_answer_delimiter: "<answer>"

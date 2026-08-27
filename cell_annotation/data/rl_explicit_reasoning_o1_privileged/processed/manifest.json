@@ -1,0 +1,21 @@
+{
+  "source_dir": "cell_annotation/data/rl_thinking_o1_privileged/processed",
+  "response_mode": "explicit_reasoning",
+  "chat_template_mode": "standard_chat_template",
+  "target_format": "<reasoning>...</reasoning>\\n<answer>...</answer>",
+  "counts": {
+    "train": {
+      "rows": 6912,
+      "o1_reasoning_available": 3912
+    },
+    "test": {
+      "rows": 1095,
+      "o1_reasoning_available": 0
+    }
+  },
+  "notes": [
+    "All 6,912 official CellPuzzles train examples are retained.",
+    "The 3,912 offline o1 traces are converted from <think> to <reasoning>.",
+    "Ground-truth answers and user prompts are unchanged."
+  ]
+}

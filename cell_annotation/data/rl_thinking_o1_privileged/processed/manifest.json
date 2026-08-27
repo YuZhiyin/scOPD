@@ -1,0 +1,11 @@
+{
+  "source_rl_train": "cell_annotation/data/rl_thinking/processed/train.parquet",
+  "source_reasoning_jsonl": [
+    "cell_annotation/data/cello1_reasoning_sft_reproduction/processed/sft_reasoning_train.jsonl",
+    "cell_annotation/data/cello1_reasoning_sft_reproduction/processed/sft_reasoning_dev.jsonl"
+  ],
+  "rows": 6912,
+  "o1_reasoning_available": 3912,
+  "o1_reasoning_unavailable": 3000,
+  "match_key": "normalized user prompt"
+}

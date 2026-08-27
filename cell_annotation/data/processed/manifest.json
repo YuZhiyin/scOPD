@@ -1,0 +1,31 @@
+{
+  "source": "ncbi/CellPuzzles",
+  "source_urls": {
+    "train": "https://huggingface.co/datasets/ncbi/CellPuzzles/resolve/main/data/train-00000-of-00001.parquet",
+    "test": "https://huggingface.co/datasets/ncbi/CellPuzzles/resolve/main/data/test-00000-of-00001.parquet"
+  },
+  "sha256": {
+    "train": "7a145d18411d334a17014d6f8c60d1732c59e1af4d7921907b264825bf0c9b7d",
+    "test": "8dc06e0336b669382831245618ef6c8515897d44b1d1e3aa834de2b280d61f88"
+  },
+  "counts": {
+    "train": 6912,
+    "test": 1095,
+    "test_clean_no_cell_level_ranked_gene_overlap": 604,
+    "unseen_total": 539,
+    "unseen_breast_cancer": 125,
+    "unseen_colorectal_cancer": 251,
+    "unseen_melanoma": 63,
+    "unseen_systemic_lupus_erythematosus": 100,
+    "train_fit": 6566,
+    "train_dev": 346
+  },
+  "sft_split_seed": 42,
+  "sft_dev_ratio": 0.05,
+  "prompt_mode": "nonthinking",
+  "notes": [
+    "SFT and SDPO fit/dev are derived only from the official CellPuzzles train split.",
+    "test_clean removes any test batch containing a cell whose exact ranked-gene signature occurs in train.",
+    "The local unseen_data files are evaluation-only."
+  ]
+}

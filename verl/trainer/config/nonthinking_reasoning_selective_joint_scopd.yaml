@@ -1,0 +1,16 @@
+defaults:
+  - nonthinking_reasoning_o1_fallback_dynamic_entropy_sibling_srpo
+  - _self_
+
+# Selective Joint scOPD keeps dense GRPO on every rollout and adds DW-SDPO
+# only for answer-wrong rollouts that have a qualified exact sibling, or an
+# offline O1 fallback when no qualified sibling exists. This first ablation
+# changes only the loss routing: sibling eligibility, full-response SDPO,
+# teacher EMA, and dynamic entropy weighting match the routed baseline.
+actor_rollout_ref:
+  actor:
+    policy_loss:
+      loss_mode: selective_joint_grpo_sdpo
+    self_distillation:
+      joint_loss_weight: 0.3
+

@@ -1,0 +1,30 @@
+defaults:
+  - o1_fallback_dynamic_entropy_sibling_srpo
+  - _self_
+
+# Model-agnostic explicit reasoning protocol used by models such as Llama 3.1,
+# which do not expose Qwen's enable_thinking switch. Routing, EMA teacher,
+# generalized JSD and dynamic teacher-entropy weighting are unchanged.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      remove_thinking_from_demonstration: false
+      reprompt_template: |-
+        {prompt}{solution}{feedback}
+
+        Correctly solve the original cell-annotation problem. Use the supplied
+        privileged reasoning, but return only the exact response protocol below
+        with no hidden-thought block or extra text:
+        <reasoning>explicit biological reasoning grounded in marker genes,
+        cell context, and the global one-to-one matching constraint</reasoning>
+        <answer>cell type 1 | cell type 2 | ...</answer>
+      solution_template: |-
+
+        Correct response from another rollout of this exact problem:
+
+        {successful_previous_attempt}
+      feedback_template: |-
+
+        Correct expert response distilled from o1 for this exact problem:
+
+        {feedback_raw}

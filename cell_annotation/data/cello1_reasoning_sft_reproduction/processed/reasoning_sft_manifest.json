@@ -1,0 +1,27 @@
+{
+  "source": "ncbi/CellPuzzles",
+  "source_split": "reasoning",
+  "description": "Expert-like reasoning traces distilled from o1.",
+  "source_urls": {
+    "reasoning": "https://huggingface.co/datasets/ncbi/CellPuzzles/resolve/main/data/reasoning-00000-of-00001.parquet",
+    "train": "https://huggingface.co/datasets/ncbi/CellPuzzles/resolve/main/data/train-00000-of-00001.parquet",
+    "test": "https://huggingface.co/datasets/ncbi/CellPuzzles/resolve/main/data/test-00000-of-00001.parquet"
+  },
+  "source_raw_dir": "cell_annotation/data/raw",
+  "sha256": {
+    "reasoning": "8e842b5539f06676ec6e7f288d1bdd4308d46270fff621ea4d28dcb24aadb3e6",
+    "train": "7a145d18411d334a17014d6f8c60d1732c59e1af4d7921907b264825bf0c9b7d",
+    "test": "8dc06e0336b669382831245618ef6c8515897d44b1d1e3aa834de2b280d61f88"
+  },
+  "counts": {
+    "reasoning": 3912,
+    "train": 3521,
+    "dev": 391,
+    "official_test_overlap": 0,
+    "answer_mismatch_with_official_train": 0
+  },
+  "split_seed": 0,
+  "dev_ratio": 0.1,
+  "target_format": "<think>...</think><answer>...</answer>",
+  "chat_template_mode": "enable_thinking=True"
+}

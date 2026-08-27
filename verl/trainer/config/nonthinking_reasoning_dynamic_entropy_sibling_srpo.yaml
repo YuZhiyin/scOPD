@@ -1,0 +1,27 @@
+defaults:
+  - dynamic_entropy_sibling_srpo
+  - _self_
+
+# Sibling-only ablation under the same explicit non-thinking protocol as the
+# O1-fallback variant. Samples without a qualified sibling fall back to GRPO.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      include_environment_feedback: false
+      allow_environment_feedback_fallback_for_sdpo: false
+      remove_thinking_from_demonstration: false
+      reprompt_template: |-
+        {prompt}{solution}
+
+        Correctly solve the original cell-annotation problem in non-thinking
+        mode. Use the supplied correct sibling response as privileged context,
+        but return only the exact response protocol below with no extra text:
+        <reasoning>explicit biological reasoning grounded in marker genes,
+        cell context, and the global one-to-one matching constraint</reasoning>
+        <answer>cell type 1 | cell type 2 | ...</answer>
+      solution_template: |-
+
+        Correct response from another rollout of this exact problem:
+
+        {successful_previous_attempt}
+      feedback_template: ""

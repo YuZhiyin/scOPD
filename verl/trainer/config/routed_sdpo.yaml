@@ -1,0 +1,47 @@
+defaults:
+  - ppo_trainer
+  - user
+  - _self_
+
+# CellPuzzles overrides are supplied by the launch script. This config keeps
+# the routed objective independently selectable from the existing SDPO mode.
+max_model_len: 8192
+
+actor_rollout_ref:
+  actor:
+    policy_loss:
+      loss_mode: routed_sdpo
+    self_distillation:
+      full_logit_distillation: true
+      distillation_topk: 100
+      distillation_add_tail: true
+      alpha: 0.5
+      success_reward_threshold: 2.0
+      teacher_regularization: ema
+      teacher_update_rate: 0.05
+      dont_reprompt_on_self_success: true
+      remove_thinking_from_demonstration: true
+      include_environment_feedback: true
+      environment_feedback_only_without_solution: false
+      is_clip: 2.0
+      max_reprompt_len: 7168
+      reprompt_truncation: right
+      reprompt_template: |-
+        {prompt}{feedback}
+
+        Correctly solve the original cell-annotation problem.
+      solution_template: ""
+      feedback_template: |-
+
+        {feedback_raw}
+
+  rollout:
+    calculate_log_probs: true
+
+algorithm:
+  adv_estimator: grpo
+  norm_adv_by_std_in_grpo: true
+  use_kl_in_reward: false
+
+trainer:
+  use_legacy_worker_impl: enable

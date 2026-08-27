@@ -1,0 +1,39 @@
+defaults:
+  - joint_grpo_sdpo
+  - _self_
+
+# Every rollout has a GT anchor. Process privilege is selected leave-one-out:
+# qualified on-policy sibling, otherwise offline O1, otherwise GT only.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      include_successful_sibling: true
+      success_eligibility_key: teacher_eligible
+      dont_reprompt_on_self_success: true
+      include_environment_feedback: true
+      environment_feedback_only_without_solution: true
+      base_feedback_template: |-
+
+        Verified privileged answer for this exact problem:
+
+        {base_feedback_raw}
+      solution_template: |-
+
+        Qualified correct response from a different rollout of this problem:
+
+        {successful_previous_attempt}
+      feedback_template: |-
+
+        Correct expert reasoning distilled from O1 for this exact problem:
+
+        {feedback_raw}
+      reprompt_template: |-
+        {prompt}{base_feedback}{solution}{feedback}
+
+        Re-solve the original problem using the supplied training-only
+        privileged information. Prefer the qualified on-policy reasoning when
+        present; otherwise use the expert reasoning when present. Operate in
+        non-thinking mode and return only this exact response protocol:
+        <reasoning>explicit biological reasoning grounded in marker genes,
+        cell context, and the global one-to-one matching constraint</reasoning>
+        <answer>cell type 1 | cell type 2 | ...</answer>

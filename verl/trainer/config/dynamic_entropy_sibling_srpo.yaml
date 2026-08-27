@@ -1,0 +1,12 @@
+defaults:
+  - sibling_srpo
+  - _self_
+
+# SRPO paper Section 3.2: w_t is proportional to exp(-beta H_teacher,t),
+# globally normalized to mean one over valid SDPO tokens.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      dynamic_entropy_weighting: true
+      dynamic_entropy_beta: 1.0
+

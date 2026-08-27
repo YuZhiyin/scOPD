@@ -1,0 +1,11 @@
+defaults:
+  - o1_fallback_sibling_srpo
+  - _self_
+
+# Combine sibling-first/offline-o1 fallback routing with SRPO token-level
+# teacher-entropy weighting.  The weighting affects SDPO tokens only.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      dynamic_entropy_weighting: true
+      dynamic_entropy_beta: 1.0

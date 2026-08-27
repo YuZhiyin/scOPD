@@ -1,0 +1,31 @@
+defaults:
+  - o1_fallback_sibling_srpo
+  - _self_
+
+# Non-thinking dense-reward sibling/O1 routing without dynamic entropy
+# weighting. Prefer a qualified on-policy sibling; use the converted offline
+# O1 response only for an incorrect rollout that has no qualified sibling.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      dynamic_entropy_weighting: false
+      remove_thinking_from_demonstration: false
+      reprompt_template: |-
+        {prompt}{solution}{feedback}
+
+        Correctly solve the original cell-annotation problem in non-thinking
+        mode. Use the supplied privileged reasoning, but return only the exact
+        response protocol below, with no hidden-thought block or extra text:
+        <reasoning>explicit biological reasoning grounded in marker genes,
+        cell context, and the global one-to-one matching constraint</reasoning>
+        <answer>cell type 1 | cell type 2 | ...</answer>
+      solution_template: |-
+
+        Correct response from another rollout of this exact problem:
+
+        {successful_previous_attempt}
+      feedback_template: |-
+
+        Correct expert response distilled from o1 for this exact problem:
+
+        {feedback_raw}

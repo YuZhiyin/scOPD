@@ -1,0 +1,17 @@
+scOPD
+Copyright 2026 Yu Zhiyin
+
+This distribution incorporates and modifies code from:
+
+* SDPO, https://github.com/lasgroup/SDPO
+  Source revision: 7c457fc1b1f636ae794eb0362ba37d4743b06fbc
+  Licensed under the Apache License, Version 2.0.
+
+* VERL components distributed within the SDPO repository.
+  Licensed under the Apache License, Version 2.0.
+
+The CellPuzzles data files and their derived forms originate from
+https://huggingface.co/datasets/ncbi/CellPuzzles. Third-party data are not
+relicensed by the Apache-2.0 license that covers this codebase.
+
+The Qwen3.5/Slime implementation is not part of this release.

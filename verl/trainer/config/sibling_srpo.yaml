@@ -1,0 +1,54 @@
+defaults:
+  - ppo_trainer
+  - user
+  - _self_
+
+# Reasoning-aware, successful-sibling SRPO.  Launch scripts provide the
+# CellPuzzles-specific data and runtime overrides.
+max_model_len: 8192
+
+actor_rollout_ref:
+  actor:
+    policy_loss:
+      loss_mode: routed_sdpo
+    self_distillation:
+      full_logit_distillation: true
+      distillation_topk: 100
+      distillation_add_tail: true
+      alpha: 0.5
+      success_reward_threshold: 1.0
+      success_eligibility_key: teacher_eligible
+      teacher_regularization: ema
+      teacher_update_rate: 0.05
+      dont_reprompt_on_self_success: true
+      remove_thinking_from_demonstration: false
+      include_environment_feedback: false
+      environment_feedback_only_without_solution: true
+      require_successful_solution_for_sdpo: true
+      global_token_normalization: true
+      is_clip: 2.0
+      max_reprompt_len: 9216
+      reprompt_truncation: right
+      reprompt_template: |-
+        {prompt}{solution}
+
+        Correctly solve the original cell-annotation problem. Use the correct
+        sibling solution as privileged training context, while following the
+        required reasoning and answer format.
+      solution_template: |-
+
+        Correct solution from another rollout of the same problem:
+
+        {successful_previous_attempt}
+      feedback_template: ""
+
+  rollout:
+    calculate_log_probs: true
+
+algorithm:
+  adv_estimator: grpo
+  norm_adv_by_std_in_grpo: true
+  use_kl_in_reward: false
+
+trainer:
+  use_legacy_worker_impl: enable

@@ -1,0 +1,27 @@
+defaults:
+  - joint_grpo_sdpo
+  - _self_
+
+# Controlled all-rollout joint objective: the EMA teacher receives only the
+# verified answer as privileged information.
+actor_rollout_ref:
+  actor:
+    self_distillation:
+      include_successful_sibling: false
+      include_environment_feedback: false
+      base_feedback_template: |-
+
+        Verified privileged answer for this exact problem:
+
+        {base_feedback_raw}
+      solution_template: ""
+      feedback_template: ""
+      reprompt_template: |-
+        {prompt}{base_feedback}
+
+        Re-solve the original problem using the verified assignment as
+        training-only privileged information. Operate in non-thinking mode and
+        return only this exact response protocol with no extra text:
+        <reasoning>explicit biological reasoning grounded in marker genes,
+        cell context, and the global one-to-one matching constraint</reasoning>
+        <answer>cell type 1 | cell type 2 | ...</answer>

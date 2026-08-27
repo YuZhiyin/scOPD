@@ -1,0 +1,47 @@
+defaults:
+  - ppo_trainer
+  - user
+  - _self_
+
+# Every on-policy rollout receives both dense GRPO and privileged DW-SDPO.
+max_model_len: 8192
+
+actor_rollout_ref:
+  actor:
+    policy_loss:
+      loss_mode: joint_grpo_sdpo
+    self_distillation:
+      full_logit_distillation: true
+      distillation_topk: 100
+      distillation_add_tail: true
+      alpha: 0.5
+      success_reward_threshold: 1.0
+      teacher_regularization: ema
+      teacher_update_rate: 0.05
+      joint_loss_weight: 0.3
+      dynamic_entropy_weighting: true
+      dynamic_entropy_beta: 1.0
+      include_base_feedback: true
+      base_feedback_key: teacher_base_feedback
+      include_successful_sibling: false
+      dont_reprompt_on_self_success: true
+      remove_thinking_from_demonstration: false
+      include_environment_feedback: false
+      environment_feedback_only_without_solution: true
+      require_successful_solution_for_sdpo: false
+      allow_environment_feedback_fallback_for_sdpo: false
+      global_token_normalization: false
+      is_clip: 2.0
+      max_reprompt_len: 9216
+      reprompt_truncation: right
+
+  rollout:
+    calculate_log_probs: true
+
+algorithm:
+  adv_estimator: grpo
+  norm_adv_by_std_in_grpo: true
+  use_kl_in_reward: false
+
+trainer:
+  use_legacy_worker_impl: enable
