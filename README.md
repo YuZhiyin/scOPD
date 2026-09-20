@@ -99,7 +99,6 @@ points.
 | `verl/` | VERL trainer extended with routed GRPO/SDPO, EMA self-teaching, O1 fallback, and entropy-aware weighting |
 | `verl/trainer/config/` | Main method and ablation configurations |
 | `docs/EXPERIMENT_NOTES_ZH.md` | Detailed development and experiment notes in Chinese |
-| `docs/UPSTREAM_SDPO_README.md` | Documentation of the upstream SDPO codebase |
 
 ## Data
 
