@@ -127,6 +127,10 @@ cell_annotation/data/rl_thinking/raw/
 *.npy
 *.npz
 
+# Generated sensitivity-analysis figures (rebuild with the plotting script).
+dgpr_m_sensitivity*.pdf
+dgpr_m_sensitivity*.png
+
 
 # local logs
 logs
