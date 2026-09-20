@@ -148,7 +148,7 @@ MindSpeed 对应 Megatron-LM 后端使用场景，使用方式如下：
 .. code-block:: bash
 
     git clone --depth 1 https://github.com/volcengine/verl.git
-    cd verl && pip install -r requirements-npu.txt && pip install -v -e . && cd ..
+    cd verl && pip install -r requirements/npu.txt && pip install -v -e . && cd ..
 
 
 昇腾暂不支持生态库说明

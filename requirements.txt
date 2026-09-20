@@ -1,5 +1,5 @@
 # Core dependencies for SDPO development
-# Pinned versions from requirements-full.txt for reproducibility
+# Pinned versions from requirements/full.txt for reproducibility
 #
 # vLLM version depends on your target hardware:
 # vllm==0.8.4       # GH200 cluster

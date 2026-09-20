@@ -103,14 +103,14 @@ For NVIDIA GH200 (aarch64) clusters with CUDA 13.1, we provide a pre-configured 
 **Build and deploy:**
 ```bash
 # Build the image
-podman build . -f Dockerfile.gh200 -t sdpo-gh200
+podman build . -f docker/Dockerfile.gh200 -t sdpo-gh200
 
 # Export for cluster use (enroot/squashfs)
 enroot import -x mount -o sdpo-gh200.sqsh podman://localhost/sdpo-gh200:latest
 ```
 
 > [!NOTE]
-> The Docker images use `requirements-gh200.txt` which contains pinned versions from `requirements-full.txt`, excluding packages pre-installed in the NGC vLLM container (torch, vllm, flash-attn, xformers, triton).
+> The Docker images use `requirements/gh200.txt` which contains pinned versions from `requirements/full.txt`, excluding packages pre-installed in the NGC vLLM container (torch, vllm, flash-attn, xformers, triton).
 
 ---
 
@@ -142,7 +142,7 @@ pip install flash-attn --no-build-isolation
 
 3. **Optional: Install SGLang/vLLM for high-throughput inference:**
 ```bash
-pip install -r requirements_sglang.txt
+pip install -r requirements/sglang.txt
 ```
 
 ---
@@ -152,10 +152,10 @@ pip install -r requirements_sglang.txt
 | File | Description |
 |------|-------------|
 | `requirements.txt` | Core dependencies with pinned versions |
-| `requirements-gh200.txt` | For NGC vLLM container (excludes pre-installed packages) |
-| `requirements-full.txt` | Complete pip freeze from working environment |
-| `requirements_sglang.txt` | SGLang/vLLM stack for local inference |
-| `requirements-cuda.txt` | Flash Attention (for non-Docker installs) |
+| `requirements/gh200.txt` | For NGC vLLM container (excludes pre-installed packages) |
+| `requirements/full.txt` | Complete pip freeze from working environment |
+| `requirements/sglang.txt` | SGLang/vLLM stack for local inference |
+| `requirements/cuda.txt` | Flash Attention (for non-Docker installs) |
 
 **vLLM Version Note:**
 ```
@@ -167,7 +167,7 @@ pip install -r requirements_sglang.txt
 > Blackwell architecture support (RTX 50 series, B100/B200) has not been fully tested.
 
 > [!TIP]
-> For reproducibility, use `requirements-full.txt` which contains the exact versions from a tested environment.
+> For reproducibility, use `requirements/full.txt` which contains the exact versions from a tested environment.
 
 > [!NOTE]
 > For more specific instructions on `verl` architecture and advanced configuration, refer to the [official verl repository](https://github.com/volcengine/verl).

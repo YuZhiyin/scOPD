@@ -1,5 +1,5 @@
 # Requirements for SDPO on NGC vLLM 25.12.post1 container (GH200/aarch64)
-# From requirements-full.txt
+# From requirements/full.txt
 # 
 # EXCLUDED (pre-installed in NGC):
 #   - torch, torchvision (pre-built aarch64 wheels)

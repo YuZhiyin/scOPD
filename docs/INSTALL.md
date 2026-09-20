@@ -25,11 +25,11 @@ pip install torch==2.5.1 torchvision torchaudio --index-url https://download.pyt
 From the root of the repository:
 ```bash
 # Install dependencies
-# Option 1: Stable pinned versions matching the cluster stack (Recommended)
-pip install -r requirements-stable.txt
+# Option 1: Core pinned dependencies (Recommended)
+pip install -r requirements.txt
 
-# Option 2: Latest compatible versions
-# pip install -r requirements.txt
+# Option 2: Exact tested environment
+# pip install -r requirements/full.txt
 
 # Install SDPO (verl) in editable mode
 pip install -e .
@@ -47,7 +47,7 @@ Use this if you want a guaranteed working environment without managing local dep
 **1. Build and Run:**
 ```bash
 # Build the image
-docker build -t sdpo:latest .
+docker build -f docker/Dockerfile.sdpo -t sdpo:latest .
 
 # Run container (with GPU support)
 docker run --gpus all -it --ipc=host -v $(pwd):/app sdpo:latest
@@ -68,7 +68,7 @@ This codebase supports vLLM and SGLang for high-throughput inference, which sign
 
 **Installation:**
 ```bash
-pip install -r requirements_sglang.txt
+pip install -r requirements/sglang.txt
 ```
 *Note: This command installs specific versions of SGLang and vLLM compatible with this codebase. Ensure your NVIDIA drivers are compatible with the installed CUDA toolkit (e.g., CUDA 12.4 if matching the PyTorch installation above).*
 
@@ -77,7 +77,7 @@ To verify the installation, you can run the tests:
 
 ```bash
 # Install test dependencies
-pip install pytest
+pip install -r requirements/test.txt
 
 # Run tests
 pytest tests/
@@ -91,4 +91,3 @@ This codebase was developed and tested using the **NVIDIA NGC 25.12** software s
 - **PyTorch**: `2.10.0a0+b4e4ee81d3.nv25.12`
 - **NGC Index**: `https://pypi.ngc.nvidia.com`
 - **CUDA**: 12.x (Optimized for GH200/H100)
-

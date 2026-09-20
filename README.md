@@ -140,8 +140,11 @@ required for model training and vLLM evaluation.
 
 ```bash
 python -m pip install -e .
-python -m pip install -r requirements-test.txt
+python -m pip install -r requirements/test.txt
 ```
+
+Additional environment and container options are documented in
+[`docs/INSTALL.md`](docs/INSTALL.md).
 
 The experiments use Qwen3-8B and multi-GPU Ray jobs. Model weights and
 training checkpoints are not stored in this repository.

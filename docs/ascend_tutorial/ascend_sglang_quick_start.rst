@@ -68,7 +68,7 @@ sglang
     git clone https://github.com/volcengine/verl.git
     cd verl
     pip install --no-deps -e .
-    pip install -r requirements-npu.txt 
+    pip install -r requirements/npu.txt
 
 
 其他三方库说明

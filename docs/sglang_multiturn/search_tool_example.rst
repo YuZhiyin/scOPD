@@ -64,7 +64,7 @@ Install verl Upstream
 
    # Install verl
    python3 -m uv pip install .
-   python3 -m uv pip install -r ./requirements_sglang.txt
+   python3 -m uv pip install -r ./requirements/sglang.txt
 
    # Manually install flash-attn
    python3 -m uv pip install wheel
