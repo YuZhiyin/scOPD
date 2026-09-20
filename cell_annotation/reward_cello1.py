@@ -265,7 +265,7 @@ def compute_nonthinking_reasoning_sparse_score(
     return result
 
 
-def _add_sibling_srpo_metadata(
+def _add_ropsd_metadata(
     result: Dict[str, Any], solution_str: str, reasoning_tag: str = "think"
 ) -> Dict[str, Any]:
     """Attach reasoning-aware sibling eligibility without changing reward."""
@@ -291,7 +291,7 @@ def compute_sparse_sibling_score(
     ground_truth: str,
     extra_info: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Sparse Cell-o1 reward plus reasoning-aware sibling-SRPO metadata.
+    """Sparse Cell-o1 reward plus reasoning-aware ROPSD metadata.
 
     The scalar reward remains the paper-aligned 1/0/-1 reward.  A rollout is a
     valid successful sibling only when the complete cell batch is exactly
@@ -306,7 +306,7 @@ def compute_sparse_sibling_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    return _add_sibling_srpo_metadata(result, solution_str)
+    return _add_ropsd_metadata(result, solution_str)
 
 
 def compute_repo_sibling_score(
@@ -315,7 +315,7 @@ def compute_repo_sibling_score(
     ground_truth: str,
     extra_info: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Cell-o1 repo dense reward plus reasoning-aware sibling-SRPO metadata.
+    """Cell-o1 repo dense reward plus reasoning-aware ROPSD metadata.
 
     Structurally valid rollouts receive ``(positional accuracy + exact match) /
     2`` and invalid rollouts receive ``-1``.  Sibling eligibility and routing
@@ -327,7 +327,7 @@ def compute_repo_sibling_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    return _add_sibling_srpo_metadata(result, solution_str)
+    return _add_ropsd_metadata(result, solution_str)
 
 
 def compute_nonthinking_reasoning_repo_sibling_score(
@@ -343,7 +343,7 @@ def compute_nonthinking_reasoning_repo_sibling_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    return _add_sibling_srpo_metadata(
+    return _add_ropsd_metadata(
         result, solution_str, reasoning_tag="reasoning"
     )
 
@@ -368,7 +368,7 @@ def compute_nonthinking_reasoning_sparse_sibling_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    return _add_sibling_srpo_metadata(
+    return _add_ropsd_metadata(
         result, solution_str, reasoning_tag="reasoning"
     )
 
@@ -411,7 +411,7 @@ def compute_nonthinking_reasoning_joint_hierarchical_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    result = _add_sibling_srpo_metadata(
+    result = _add_ropsd_metadata(
         result, solution_str, reasoning_tag="reasoning"
     )
     result["teacher_base_feedback"] = _gt_teacher_feedback(ground_truth)
@@ -450,7 +450,7 @@ def compute_repo_o1_fallback_sibling_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    result = _add_sibling_srpo_metadata(result, solution_str)
+    result = _add_ropsd_metadata(result, solution_str)
     return _add_o1_fallback_metadata(result, extra_info)
 
 
@@ -467,11 +467,33 @@ def compute_nonthinking_reasoning_repo_o1_fallback_sibling_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    result = _add_sibling_srpo_metadata(
+    result = _add_ropsd_metadata(
         result, solution_str, reasoning_tag="reasoning"
     )
     return _add_o1_fallback_metadata(
         result, extra_info, convert_to_reasoning_tags=True
+    )
+
+
+def compute_scopd_ropsd_score(
+    data_source: str,
+    solution_str: str,
+    ground_truth: str,
+    extra_info: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Canonical reward and routing entry point for the paper's ROPSD stage.
+
+    Valid responses receive the dense CellPuzzles reward. A rollout is a
+    qualified sibling only when its full batch assignment is correct and its
+    explicit reasoning passes the non-degeneration guard. Erroneous rollouts
+    request sibling-conditioned SDPO, use an offline O1 trace only when a
+    qualified sibling is unavailable, and otherwise fall back to GRPO.
+    """
+    return compute_nonthinking_reasoning_repo_o1_fallback_sibling_score(
+        data_source=data_source,
+        solution_str=solution_str,
+        ground_truth=ground_truth,
+        extra_info=extra_info,
     )
 
 
@@ -511,7 +533,7 @@ def compute_sparse_o1_fallback_sibling_score(
         ground_truth=ground_truth,
         extra_info=extra_info,
     )
-    result = _add_sibling_srpo_metadata(result, solution_str)
+    result = _add_ropsd_metadata(result, solution_str)
     return _add_o1_fallback_metadata(result, extra_info)
 
 

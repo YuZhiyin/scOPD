@@ -13,5 +13,3 @@ This distribution incorporates and modifies code from:
 The CellPuzzles data files and their derived forms originate from
 https://huggingface.co/datasets/ncbi/CellPuzzles. Third-party data are not
 relicensed by the Apache-2.0 license that covers this codebase.
-
-The Qwen3.5/Slime implementation is not part of this release.

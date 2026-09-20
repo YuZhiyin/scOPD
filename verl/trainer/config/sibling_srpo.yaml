@@ -3,8 +3,9 @@ defaults:
   - user
   - _self_
 
-# Reasoning-aware, successful-sibling SRPO.  Launch scripts provide the
-# CellPuzzles-specific data and runtime overrides.
+# Historical configuration name for reasoning-aware ROPSD with successful
+# sibling trajectories. Launch scripts provide CellPuzzles-specific data and
+# runtime overrides.
 max_model_len: 8192
 
 actor_rollout_ref:

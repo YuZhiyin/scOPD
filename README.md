@@ -1,88 +1,128 @@
 # scOPD
 
-Official code and data release for **scOPD**, a three-stage framework for
-reasoning-based cell type annotation:
+Official implementation of **scOPD: Routed On-Policy Self-Distillation for
+Large Language Model-Based Single-Cell Annotation**.
 
-1. **Reasoning SFT** teaches an explicit biological reasoning protocol.
-2. **scOPD training** combines dense verifier rewards, sibling supervision,
-   offline-o1 fallback supervision, GRPO/SDPO routing, and entropy-aware
-   dynamic weighting.
-3. **DGPR** is a training-free, consensus-triggered refinement procedure used
-   at inference time.
+scOPD uses complementary signals from multiple model rollouts: successful
+sibling trajectories provide fine-grained reasoning supervision during
+training, while disagreement among valid rollouts guides conservative
+refinement during inference.
 
-This release contains the Qwen3/VERL implementation used for the main
-experiments and ablations. The newer Qwen3.5/Slime implementation is
-intentionally not included in this version.
+## Framework
 
-## Method at a glance
+scOPD consists of three stages:
 
-For each prompt, the policy samples a group of `K` responses. The verifier
-assigns the dense reward
+1. **Cold-Start Reasoning Fine-Tuning (CRFT)** distills biological reasoning
+   trajectories into an explicit response protocol.
+2. **Routed On-Policy Self-Distillation (ROPSD)** routes each on-policy
+   rollout to outcome-based GRPO or token-level self-distillation according to
+   rollout quality and the availability of privileged reasoning.
+3. **Disagreement-Gated Pairwise Refinement (DGPR)** uses rollout
+   disagreement to localize uncertain cells and performs constraint-aware
+   refinement with a medoid anchor and a supported challenger.
 
-```text
--1                                      invalid format/count/candidate set
-(cell_accuracy + exact_batch_match) / 2 otherwise
-```
-
-and routes each response as follows:
+The model uses non-thinking inference and exposes its reasoning through the
+following supervised protocol:
 
 ```text
-reasoning SFT checkpoint
-          |
-          v
-   K on-policy responses
-          |
-          +-- exact response --------------------------> GRPO
-          |
-          +-- failed + qualified leave-one-out sibling -> sibling SDPO
-          |
-          +-- failed + offline o1 trace ---------------> o1 SDPO
-          |
-          +-- no eligible teacher ---------------------> GRPO fallback
-
-SDPO token weights: exp(-beta * teacher_entropy), normalized per rollout batch
+<reasoning>
+Biological reasoning grounded in marker genes, cell context, and the
+one-to-one matching constraint.
+</reasoning>
+<answer>
+cell type 1 | cell type 2 | ...
+</answer>
 ```
 
-The default main configuration uses `K=8`, `beta=1.0`, five RL epochs, and a
-4096-token response budget. DGPR uses `M=8` candidate rollouts and a consensus
-threshold of `0.75` unless overridden.
+## ROPSD at a glance
+
+For each annotation task, the policy samples `K` on-policy rollouts. A
+structurally valid response receives
+
+```text
+(cell-level accuracy + batch exact match) / 2
+```
+
+and an invalid response receives `-1`. A rollout is *qualified* only when its
+entire batch assignment is correct, its output is valid, and its reasoning
+passes the non-degeneration guard. ROPSD then applies the following mutually
+exclusive routing:
+
+```text
+K on-policy rollouts
+        |
+        +-- qualified ---------------------------------> GRPO
+        |
+        +-- unqualified + qualified sibling ----------> sibling DW-SDPO
+        |
+        +-- unqualified + no sibling + O1 trajectory -> O1-fallback DW-SDPO
+        |
+        +-- no eligible privileged context -----------> fallback GRPO
+```
+
+The self-teacher is an exponential-moving-average copy of the policy. It sees
+the same student trajectory plus privileged sibling or O1 reasoning and
+re-scores the student's next-token distributions; it does not generate a new
+trajectory. SDPO uses generalized Jensen--Shannon divergence (`alpha=0.5`),
+top-100 logits plus a tail bucket, and clipped importance weights. Its
+entropy-aware token weights are
+`exp(-beta * teacher_entropy)` and are normalized across all routed SDPO
+tokens in the PPO mini-batch and data-parallel group. GRPO and SDPO losses are
+combined using their global routed-token counts, without a manually tuned
+mixing coefficient.
+
+The default paper configuration uses `K=8`, `beta=1.0`, five ROPSD epochs,
+and a 4,096-token response budget. DGPR uses `M=8` inference rollouts and a
+cell-wise consensus threshold of `0.75`.
+
+## Paper terminology and code
+
+| Paper component | Main implementation |
+| --- | --- |
+| CRFT | [`prepare_reasoning_sft.py`](cell_annotation/prepare_reasoning_sft.py), [`sft_lora.py`](cell_annotation/sft_lora.py) |
+| Dense reward and routing metadata | [`reward_cello1.py`](cell_annotation/reward_cello1.py) |
+| ROPSD configuration | [`scopd_ropsd.yaml`](verl/trainer/config/scopd_ropsd.yaml) |
+| Routed GRPO/SDPO objective | [`dp_actor.py`](verl/workers/actor/dp_actor.py), [`core_algos.py`](verl/trainer/ppo/core_algos.py) |
+| DGPR | [`dgpr.py`](cell_annotation/dgpr.py), [`infer_dgpr_vllm.py`](cell_annotation/infer_dgpr_vllm.py) |
+
+Historical experiment filenames are retained for checkpoint and ablation
+reproducibility. The paper-facing launchers below are the recommended entry
+points.
 
 ## Repository layout
 
 | Path | Contents |
 | --- | --- |
-| `cell_annotation/` | SFT, reward, evaluation, DGPR, data preparation, and experiment launchers |
-| `cell_annotation/data/` | CellPuzzles raw data and the processed SFT/RL/evaluation data used by scOPD |
-| `verl/` | SDPO/GRPO trainer with sibling routing, o1 fallback, and dynamic weighting |
+| `cell_annotation/` | Data preparation, CRFT, rewards, evaluation, DGPR, and experiment launchers |
+| `cell_annotation/data/` | CellPuzzles source and processed CRFT/ROPSD/evaluation data |
+| `cell_annotation/tests/` | Reward, routing, tokenization, evaluation, and DGPR unit tests |
+| `verl/` | VERL trainer extended with routed GRPO/SDPO, EMA self-teaching, O1 fallback, and entropy-aware weighting |
 | `verl/trainer/config/` | Main method and ablation configurations |
-| `cell_annotation/tests/` | Reward, routing, SFT-tokenization, evaluation, and DGPR tests |
 | `docs/EXPERIMENT_NOTES_ZH.md` | Detailed development and experiment notes in Chinese |
-| `docs/UPSTREAM_SDPO_README.md` | README of the upstream SDPO codebase |
+| `docs/UPSTREAM_SDPO_README.md` | Documentation of the upstream SDPO codebase |
 
 ## Data
 
 The included data are derived from the public
 [`ncbi/CellPuzzles`](https://huggingface.co/datasets/ncbi/CellPuzzles)
-dataset and the evaluation-only unseen splits used by Cell-o1. Important
-counts are:
+dataset and the evaluation-only unseen splits used by Cell-o1.
 
 | Split | Rows |
 | --- | ---: |
 | CellPuzzles train | 6,912 |
 | CellPuzzles test | 1,095 |
 | Test-clean | 604 |
-| Four unseen sets combined | 539 |
-| Offline o1 reasoning traces | 3,912 |
-| Reasoning-SFT train/dev | 3,521 / 391 |
+| Four unseen disease sets combined | 539 |
+| O1-distilled reasoning trajectories | 3,912 |
+| CRFT train/dev | 3,521 / 391 |
 
-The manifests under `cell_annotation/data/**/manifest.json` record source
-URLs, checksums, split seeds, prompt modes, and row counts. Generated GenePT
-embedding arrays and expanded C2S baseline caches are omitted because they are
-large, reproducible intermediate artifacts and are not inputs to scOPD. See
+Manifests under `cell_annotation/data/**/manifest.json` record source URLs,
+checksums, split seeds, prompt modes, and row counts. Large reproducible
+intermediate arrays for baseline methods are not included. See
 [`cell_annotation/data/README.md`](cell_annotation/data/README.md) for the
-complete inventory and data-license note.
+complete inventory and data-license notes.
 
-To rebuild the canonical data from source:
+To rebuild the canonical data:
 
 ```bash
 export PYTHONPATH=$PWD
@@ -94,7 +134,7 @@ python -m cell_annotation.prepare_o1_privileged_rl_data --help
 
 ## Installation
 
-The trainer is based on
+The training stack is based on
 [`lasgroup/SDPO`](https://github.com/lasgroup/SDPO) and VERL. A CUDA machine is
 required for model training and vLLM evaluation.
 
@@ -103,76 +143,79 @@ python -m pip install -e .
 python -m pip install -r requirements-test.txt
 ```
 
-The original experiments used Qwen3-8B and multi-GPU Ray jobs. Model weights
-and training checkpoints are not stored in this repository.
+The experiments use Qwen3-8B and multi-GPU Ray jobs. Model weights and
+training checkpoints are not stored in this repository.
 
-## Reproducing the three stages
+## Reproduction
 
-The launchers contain PJLab `rjob` defaults, but all important paths and
-hyperparameters can be overridden through environment variables. Use
-`DRY_RUN=1` to inspect the generated job before submission.
+The launchers contain PJLab `rjob` defaults, but paths and hyperparameters can
+be overridden through environment variables. Set `DRY_RUN=1` to inspect a job
+without submitting it.
 
-### 1. Reasoning SFT
+### Stage 1: CRFT
 
 ```bash
 REPO_DIR=$PWD \
 BASE_MODEL=/path/to/Qwen3-8B \
 DRY_RUN=1 \
-bash cell_annotation/cluster/submit_qwen3_8b_nonthinking_reasoning_sft_rjob.sh
+bash cell_annotation/cluster/submit_qwen3_8b_crft_rjob.sh
 ```
 
-The reproduction split uses the 3,912 verified o1 traces, seed 0, and explicit
-`<reasoning>...</reasoning><answer>...</answer>` targets while Qwen3 runs with
-`enable_thinking=False`.
+The canonical setup uses 3,912 O1-distilled trajectories, a 90/10 split, 10
+epochs, LoRA rank 256 (`alpha=512`), and a maximum sequence length of 8,192.
+Qwen3 runs with `enable_thinking=False`; only assistant completion tokens are
+supervised.
 
-### 2. Dense sibling + o1 fallback + dynamic-weighted GRPO/SDPO
+### Stage 2: ROPSD
 
 ```bash
 REPO_DIR=$PWD \
-STUDENT_MODEL=/path/to/reasoning-sft/merged_model \
+STUDENT_MODEL=/path/to/crft/merged_model \
 DRY_RUN=1 \
-bash cell_annotation/cluster/submit_qwen3_8b_nonthinking_reasoning_dense_o1_dynamic_sibling_rjob.sh
+bash cell_annotation/cluster/submit_qwen3_8b_ropsd_rjob.sh
 ```
 
-The main trainer configuration is
-[`nonthinking_reasoning_o1_fallback_dynamic_entropy_sibling_srpo.yaml`](verl/trainer/config/nonthinking_reasoning_o1_fallback_dynamic_entropy_sibling_srpo.yaml).
-The adjacent launchers cover dense/sparse reward, no-SFT, no-o1, no-dynamic-
-weighting, beta sensitivity, GRPO-only, and alternate joint-routing ablations.
+The main entry point uses
+[`compute_scopd_ropsd_score`](cell_annotation/reward_cello1.py) and
+[`scopd_ropsd.yaml`](verl/trainer/config/scopd_ropsd.yaml). Adjacent launchers
+provide the GRPO-only, sparse-reward, no-CRFT, no-O1, no-dynamic-weighting,
+entropy-coefficient, and joint-objective ablations.
 
-### 3. Training-free DGPR
+### Stage 3: DGPR
 
 ```bash
 REPO_DIR=$PWD \
-MODEL_PATH=/path/to/scopd/merged_model_step540 \
+MODEL_PATH=/path/to/ropsd/merged_model \
 DRY_RUN=1 \
-bash cell_annotation/cluster/submit_qwen3_8b_nt_dense_sibling_o1_dw_step540_dgpr_eval_rjob.sh
+bash cell_annotation/cluster/submit_qwen3_8b_dgpr_eval_rjob.sh
 ```
 
-The implementation is in [`dgpr.py`](cell_annotation/dgpr.py) and
-[`infer_dgpr_vllm.py`](cell_annotation/infer_dgpr_vllm.py). M-sensitivity
-launchers for `M={2,4,6,8,10}` are included.
+DGPR filters malformed, non-permutation, and reasoning-degenerate outputs;
+selects an observed complete assignment as the Hamming medoid; localizes
+stable and uncertain cells from cell-wise support; and accepts a refinement
+only when it preserves stable assignments, uses rollout-supported labels, and
+satisfies the global one-to-one constraint.
 
 ## Tests
 
-CPU-only method tests can be run with:
+Run the method unit tests from the repository root:
 
 ```bash
-pytest -q \
+export PYTHONPATH=$PWD
+python -m pytest -q \
   cell_annotation/tests/test_reward_cello1.py \
   cell_annotation/tests/test_sibling_srpo_core.py \
   cell_annotation/tests/test_dgpr.py \
   tests/trainer/ppo/test_metric_utils_on_cpu.py
 ```
 
-GPU integration tests require the same VERL/vLLM/Ray stack used for training.
+GPU integration tests require the VERL/vLLM/Ray environment used for
+training.
 
-## Attribution
+## Attribution and license
 
-This repository contains modifications to the Apache-2.0-licensed SDPO/VERL
-codebase. See [`NOTICE`](NOTICE) and the upstream README for attribution.
-CellPuzzles and other third-party data remain subject to their source terms;
-the repository's Apache-2.0 license applies to code, not third-party datasets.
-
-## License
-
-Code is released under the [Apache License 2.0](LICENSE).
+This repository modifies the Apache-2.0-licensed SDPO/VERL codebase. See
+[`NOTICE`](NOTICE) and the upstream documentation for attribution.
+CellPuzzles and other third-party data remain subject to their original terms;
+the repository's [Apache License 2.0](LICENSE) applies to code, not third-party
+datasets.

@@ -137,10 +137,10 @@ self_distillation:
   success_eligibility_key: null
 
   # Use one routed-token denominator across the full PPO mini-batch and DP
-  # group. This is the normalization in the SRPO objective.
+  # group. This is the normalization in the ROPSD objective.
   global_token_normalization: False
 
-  # Entropy-aware Dynamic-Weighted SDPO (SRPO paper, beta=1 by default).
+  # Entropy-aware Dynamic-Weighted SDPO (beta=1 by default).
   dynamic_entropy_weighting: False
   dynamic_entropy_beta: 1.0
 

@@ -1094,7 +1094,7 @@ def combine_routed_branch_losses(
 
     With ``global_token_count`` this returns the local numerator scaled so that
     averaging gradients across ``dp_size`` data-parallel ranks recovers the
-    single global-token-normalized SRPO objective.
+    single global-token-normalized ROPSD objective.
     """
     numerator = sdpo_loss * sdpo_token_count + grpo_loss * grpo_token_count
     if global_token_count is not None:

@@ -1,0 +1,7 @@
+defaults:
+  - nonthinking_reasoning_o1_fallback_dynamic_entropy_sibling_srpo
+  - _self_
+
+# Canonical paper-facing configuration for Routed On-Policy
+# Self-Distillation (ROPSD). The inherited historical configuration name is
+# retained so existing experiment launchers remain reproducible.

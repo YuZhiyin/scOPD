@@ -10,12 +10,12 @@ from cell_annotation.reward_cello1 import (
     compute_nonthinking_reasoning_sparse_sibling_score,
     compute_repo_o1_fallback_sibling_score,
     compute_repo_sibling_score,
+    compute_scopd_ropsd_score,
     compute_score,
     compute_sparse_o1_fallback_sibling_score,
     compute_sparse_score,
     compute_sparse_sibling_score,
 )
-
 
 GOLD = "T cell | B cell"
 
@@ -181,6 +181,23 @@ class NonThinkingReasoningRewardTest(unittest.TestCase):
         self.assertEqual(result["o1_fallback_requested"], 1.0)
         self.assertIn("<reasoning>", result["feedback"])
         self.assertNotIn("<think>", result["feedback"])
+
+    def test_canonical_ropsd_entry_point_matches_main_route(self):
+        wrong = (
+            f"<reasoning>{self._substantive_reasoning()}</reasoning>\n"
+            "<answer>T cell | monocyte</answer>"
+        )
+        o1_trace = (
+            "<think>Expert marker-gene and matching analysis.</think>\n"
+            "<answer>T cell | B cell</answer>"
+        )
+        expected = compute_nonthinking_reasoning_repo_o1_fallback_sibling_score(
+            "cell_annotation", wrong, GOLD, {"o1_reasoning": o1_trace}
+        )
+        actual = compute_scopd_ropsd_score(
+            "cell_annotation", wrong, GOLD, {"o1_reasoning": o1_trace}
+        )
+        self.assertEqual(actual, expected)
 
     def test_dense_exact_reasoning_rollout_is_sibling_eligible(self):
         exact = (

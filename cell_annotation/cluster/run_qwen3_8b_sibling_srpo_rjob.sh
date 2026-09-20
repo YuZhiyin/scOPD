@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# K=8 reasoning-aware sibling-SRPO:
+# K=8 Routed On-Policy Self-Distillation (ROPSD):
 #   qualified exact rollout       -> GRPO
 #   correction + qualified sibling -> sibling-conditioned SDPO
 #   correction + no sibling       -> GRPO fallback
@@ -16,6 +16,8 @@ OUTPUT_ROOT=${OUTPUT_ROOT:-/mnt/shared-storage-user/ma4tool-shared/all_users_sha
 EXP_OUT=${EXP_OUT:-${OUTPUT_ROOT}/${EXPERIMENT_NAME}}
 PYTHON_BIN=${PYTHON_BIN:-python3}
 CONFIG_NAME=${CONFIG_NAME:-sibling_srpo}
+WANDB_PROJECT=${WANDB_PROJECT:-cell_annotation_srpo}
+WANDB_GROUP=${WANDB_GROUP:-reasoning_sibling_srpo}
 RAY_PORT=${RAY_PORT:-}
 RAY_TMPDIR=${RAY_TMPDIR:-/tmp/ray-sibling-srpo-${RUN_TS}}
 
@@ -219,8 +221,8 @@ fi
     algorithm.rollout_correction.rollout_is=token \
     algorithm.rollout_correction.rollout_is_threshold=2.0 \
     trainer.logger='["console","wandb"]' \
-    trainer.project_name=cell_annotation_srpo \
-    trainer.group_name=reasoning_sibling_srpo \
+    trainer.project_name="${WANDB_PROJECT}" \
+    trainer.group_name="${WANDB_GROUP}" \
     trainer.experiment_name="${EXPERIMENT_NAME}" \
     trainer.n_gpus_per_node="${NUM_GPUS:-8}" \
     trainer.nnodes=1 \
@@ -238,4 +240,4 @@ fi
     "$@"
 
 "${RAY_CMD[@]}" stop --force 2>/dev/null || true
-echo "[done] sibling-SRPO output: ${EXP_OUT}"
+echo "[done] ROPSD output: ${EXP_OUT}"

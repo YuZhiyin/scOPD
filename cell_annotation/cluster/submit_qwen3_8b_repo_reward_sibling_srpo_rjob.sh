@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Dense Cell-o1-repo reward variant of the K=8 reasoning-aware sibling-SRPO
+# Dense Cell-o1-repo reward variant of the K=8 reasoning-aware ROPSD
 # experiment. Validation still runs once per epoch; only the final checkpoint
 # is retained because the shared filesystem has limited free space.
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)

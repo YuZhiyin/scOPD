@@ -1088,7 +1088,7 @@ class DataParallelPPOActor(BasePPOActor):
 
                             # Both branch losses are means over their routed
                             # tokens. Reweight by token counts to recover the
-                            # single token-normalized SRPO objective without a
+                            # single token-normalized ROPSD objective without a
                             # manually tuned mixing coefficient.
                             # FSDP averages gradients across DP ranks. With a
                             # global denominator, the DP-size multiplier in the
